@@ -2,7 +2,10 @@
 
 ## Business Problem
 
-Dodo Flight School (DFS) has hired you to help them decide the location for their next expansion. DFS has provided historical weather data for various airports across the United States. The deliverable will consist of the 10 most ideal locations to be considered for expansion.
+Dodo Flight School (DFS, made up name) has hired you to help them decide the location for their next expansion. DFS has provided historical weather data for various airports across the United States. The deliverable will consist of the 10 most ideal locations to be considered for expansion.
+
+
+___
 
 Criteria for Expansion:
 
@@ -14,3 +17,5 @@ Criteria for Expansion:
   - Visiblity of 10 miles or more
   - Cloud Ceiling of 3,000 ft above ground or higher
   - Winds less than 15 kts
+
+
