@@ -19,3 +19,9 @@ Criteria for Expansion:
   - Winds less than 15 kts
 
 
+## Methodology
+
+1. Cleaning data
+2. Exploratory Data Analysis
+3. Clustering Approach
+4. Recommendations
