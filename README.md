@@ -7,12 +7,12 @@ Dodo Flight School (DFS, made up name) has hired you to help them decide the loc
 
 ___
 
-Criteria for Expansion:
+## Criteria for Expansion:
 
 - Continental US
 - Near an airport (obviously)
 - Weather is most important factor
-- Most flying is done during day
+- Most flight training is done during day
 - General Rule of Thumb for ideal weather:
   - Visiblity of 10 miles or more
   - Cloud Ceiling of 3,000 ft above ground or higher
