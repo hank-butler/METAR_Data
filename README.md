@@ -22,6 +22,8 @@ ___
 ## Methodology
 
 1. Cleaning data
+  * RegEx
+  * Filtering/Imputation
 2. Exploratory Data Analysis
 3. Clustering Approach
 4. Recommendations
