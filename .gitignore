@@ -3,3 +3,5 @@
 code/.ipynb_checkpoints/01-data-cleaning-checkpoint.ipynb
 code/.ipynb_checkpoints/metar_data-checkpoint.ipynb
 data/metar_export.txt
+code/__pycache__/utils.cpython-38.pyc
+code/.ipynb_checkpoints/utils-checkpoint.py
