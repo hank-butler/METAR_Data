@@ -19,9 +19,12 @@ def create_map(map_file=None, latitude=None, longitude=None, zoom=4):
     RAISES
     =======
     ValueError if map_file, latitude, longitude aren't correct data types
-    ModuleNotFoundError if Pandas, json, and Folium aren't imported before invoking
+    ModuleNotFoundError if json and Folium aren't imported before invoking
     
     '''
+    import folium
+    import json
+    
     json_map = json.load(open(map_file))
     
     folium_map = folium.Map(location=[latitude, longitude],
