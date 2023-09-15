@@ -1,4 +1,4 @@
-StateAbbr,PlaceName,Population2010,LATITUDE,LONGITUDE
+state,city,population2010,latitude,longitude
 AL,Birmingham,212237,33.5275663773,-86.7988174678
 AL,Hoover,81619,33.3767602729,-86.8051937568
 AL,Huntsville,180105,34.6989692671,-86.6387042882
