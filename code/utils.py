@@ -25,11 +25,16 @@ def create_map(map_file=None, latitude=None, longitude=None, zoom=4):
     import folium
     import json
     
-    json_map = json.load(open(map_file))
-    
-    folium_map = folium.Map(location=[latitude, longitude],
-                      zoom_start = zoom)
-    
-    folium.GeoJson(json_map).add_to(folium_map)
-    
+    if map_file:
+        json_map = json.load(open(map_file))
+
+        folium_map = folium.Map(location=[latitude, longitude],
+                          zoom_start = zoom)
+
+        folium.GeoJson(json_map).add_to(folium_map)
+        
+    else:
+        folium_map = folium.Map(location=[latitude, longitude],
+                          zoom_start = zoom)
+
     return folium_map
