@@ -7,3 +7,5 @@ code/__pycache__/utils.cpython-38.pyc
 code/.ipynb_checkpoints/utils-checkpoint.py
 code/.ipynb_checkpoints/02-eda-checkpoint.ipynb
 .ipynb_checkpoints/README-checkpoint.md
+code/__pycache__/
+data/.ipynb_checkpoints/
