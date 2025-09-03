@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 import pandas as pd
+import tqdm
 
 
 def create_map(map_file=None, latitude=None, longitude=None, zoom=4):
@@ -175,12 +176,195 @@ def parse_metar_line(line):
 
     return out
 
-def parse_metar_file(path, encoding="utf-8"):
-    rows = []
+# def parse_metar_file(path, encoding="utf-8"):
+#     rows = []
 
-    for ln in Path(path).read_text(encoding=encoding).splitlines():
-        rec = parse_metar_line(ln)
-        if rec:
-            rows.append(rec)
+#     for ln in Path(path).read_text(encoding=encoding).splitlines():
+#         rec = parse_metar_line(ln)
+#         if rec:
+#             rows.append(rec)
 
-    return pd.DataFrame(rows)
+#     return pd.DataFrame(rows)
+
+from fractions import Fraction
+
+def _vis_to_float(raw):
+    try:
+        if " " in raw:
+            a, b = raw.split()
+            return float(a) + float(Fraction(b))
+        if "/" in raw:
+            return float(Fraction(raw))
+        return float(raw)
+    except Exception:
+        return None
+
+def parse_metar_line_to_fields(parts):
+    if len(parts) < 5:
+        return None
+    
+    date, time_, station, ddhhmmZ = parts[0], parts[1], parts[2], parts[3]
+    i = 4
+    is_auto = False
+
+    if i < len(parts) and parts[i] == 'AUTO':
+        is_auto = True
+        i += 1
+
+    wind_dir = wind_spd = wind_gst = None
+    vis_raw = vis_sm = None
+    sky_layers = []
+    temp_c = dew_c = None
+    alt_inHg = None
+    remarks = None
+    precise_t = precide_d = None
+
+    while i < len(parts):
+        tok = parts[i]
+
+        if tok == "RMK":
+            i += 1
+            break
+
+        m = _wind_re.match(tok)
+
+        if m:
+            wind_dir = m['dir']
+            wind_spd = int(m['spd'])
+            wind_gst = int(m['gst']) if m['gst'] else None
+            i += 1; continue
+
+        m = _vis_re.match(tok)
+        if m:
+            vis_raw = m['vis']
+            vis_sm = _vis_to_float(vis_raw)
+            i += 1; continue
+        
+        m = _sky_re.match(tok)
+        if m:
+            cov = m['cov']; ht = int(m['ht'])*100 if m['ht'] else None
+            sky_layers.append({"cov": cov, "base_ft": ht})
+            i += 1; continue
+        
+        m = _td_re.match(tok)
+        if m:
+            temp_c = _md_to_c(m["t"])
+            dew_c = _md_to_c(m["d"])
+            i += 1; continue
+        
+        m = _alt_re.match(tok)
+        if m:
+            alt_inHg = _inHg_from_A(m["alt"])
+            i += 1; continue
+        
+        i += 1
+
+    if i <= len(parts) - 1:
+        rem_tokens = parts[i:]
+        remarks = " ".join(rem_tokens) if rem_tokens else None
+
+        for tk in rem_tokens:
+            m = _tprec_re.match(tk)
+            if m:
+                precise_t = _c_from_Tgroup(m['ts'], m['t'])
+                precise_d = _c_from_Tgroup(m['ds'], m['d'])
+                break
+    bkn_ovc = [l['base_ft'] for l in sky_layers if l['cov'] in ("BKN", "OVC") and l['base_ft']]
+    ceiling_ft = min(bkn_ovc) if bkn_ovc else None
+
+    return (
+        date,
+        time_,
+        station,
+        ddhhmmZ,
+        is_auto,
+        wind_dir,
+        wind_spd,
+        wind_gst,
+        vis_raw,
+        vis_sm,
+        sky_layers,
+        ceiling_ft,
+        temp_c,
+        dew_c,
+        alt_inHg,
+        remarks,
+        precise_t,
+        precise_d
+    )
+
+def parse_metar_file_fast(path, show_progress=True, count_lines=True):
+
+    p = Path(path)
+
+    total=None
+
+    if count_lines:
+        with p.open('rb') as fh:
+            total = sum(1 for _ in fh)
+
+    date_, time_, station, ddhhmmZ = [], [], [], []
+    is_auto = []
+    wind_dir, wind_spd, wind_gst = [], [], []
+    vis_raw, vis_sim = [], []
+    sky_layers_col, ceiling_ft = [], []
+    temp_c, dew_c, alt_inHg = [], [], []
+    remarks, precise_t, precise_d = [], [], []
+
+    with p.open("f", encoding="utf-8", errors="ignore") as fh:
+        iterator = fh
+
+        if show_progress:
+            iterator = tqdm(fh, total=total, desc="Parsing METAR Data", unit="line")
+
+        for line in iterator:
+            s = line.strip()
+            if not s or s.startswith("#"):
+                continue
+            parts = s.split()
+            fields = parse_metar_line_to_fields(parts)
+            if fields is None:
+                continue
+
+            (d, t, stn, z, auto, wdir, wspd, wgst, vraw, vsm, layers, cielft, tc, dc, alt, rmk, pt, pd_) = fields
+
+            date_.append(d)
+            time_.append(t)
+            station.append(stn)
+            ddhhmmZ.append(z)
+            is_auto.append(auto)
+            wind_dir.append(wdir)
+            wind_spd.append(wspd)
+            wind_gst.append(wgst)
+            vis_raw.append(vraw)
+            vis_sim.append(vsm)
+            sky_layers_col.append(layers)
+            ceiling_ft.append(cielft)
+            temp_c.append(tc)
+            dew_c.append(dc)
+            alt_inHg.append(alt)
+            remarks.append(rmk)
+            precise_t.append(pt)
+            precise_d.append(pd_)
+
+    return pd.DataFrame({
+        "date": date_,
+        "time": time_,
+        "station": station,
+        "ddhhmmZ": ddhhmmZ,
+        "is_auto": is_auto,
+        "wind_dir": wind_dir,
+        "wind_spd_kt": wind_spd,
+        "wind_gst_kt": wind_gst,
+        "visibility_raw": vis_raw,
+        "visibility_sm": vis_sim,
+        "sky_layers": sky_layers_col,
+        "ceiling_ft": ceiling_ft,
+        "temp_c": temp_c,
+        "dewpoint_c": dew_c,
+        "altimeter_inHg": alt_inHg,
+        "remarks": remarks,
+        "precise_temp_c": precise_t,
+        "precise_dew_c": precise_d,
+                        })
+
