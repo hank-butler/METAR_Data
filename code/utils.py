@@ -50,7 +50,7 @@ _vis_re = re.compile(r'^(?P<vis>(?:\d+\s)?\d?/?\d)SM$')
 _sky_re = re.compile(r'^(?P<cov>FEW|SCT|BKN|OVC|CLR|SKC)(?P<ht>\d{3})?$')
 _td_re = re.compile(r'^(?P<t>M?\d{1,2})/(?P<d>M?\d{1,2})$')
 _alt_re = re.compile(r'^A(?P<alt>\d{4})$')
-_tprec_re = re.compile(r'^T(?P<ts>0|1)(?P<t>\d{3})(?P<ds.0|1)(?P<d>\d{3})$')
+_tprec_re = re.compile(r'^T(?P<ts>0|1)(?P<t>\d{3})(?P<ds>0|1)(?P<d>\d{3})$')
 
 
 def _md_to_c(s):
@@ -174,3 +174,13 @@ def parse_metar_line(line):
     out['ceiling_ft'] = min(bkn_ovc) if bkn_ovc else None
 
     return out
+
+def parse_metar_file(path, encoding="utf-8"):
+    rows = []
+
+    for ln in Path(path).read_text(encoding=encoding).splitlines():
+        rec = parse_metar_line(ln)
+        if rec:
+            rows.append(rec)
+
+    return pd.DataFrame(rows)
