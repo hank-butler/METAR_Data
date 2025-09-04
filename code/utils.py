@@ -1,3 +1,4 @@
+from fractions import Fraction
 import re
 from pathlib import Path
 import pandas as pd
@@ -186,7 +187,7 @@ def parse_metar_line(line):
 
 #     return pd.DataFrame(rows)
 
-from fractions import Fraction
+
 
 def _vis_to_float(raw):
     try:
@@ -200,9 +201,10 @@ def _vis_to_float(raw):
         return None
 
 def parse_metar_line_to_fields(parts):
-    if len(parts) < 5:
-        return None
-    
+    if not parts or len(parts) < 4:
+        return None 
+
+
     date, time_, station, ddhhmmZ = parts[0], parts[1], parts[2], parts[3]
     i = 4
     is_auto = False
@@ -217,7 +219,7 @@ def parse_metar_line_to_fields(parts):
     temp_c = dew_c = None
     alt_inHg = None
     remarks = None
-    precise_t = precide_d = None
+    precise_t = precise_d = None
 
     while i < len(parts):
         tok = parts[i]
@@ -311,11 +313,11 @@ def parse_metar_file_fast(path, show_progress=True, count_lines=True):
     temp_c, dew_c, alt_inHg = [], [], []
     remarks, precise_t, precise_d = [], [], []
 
-    with p.open("f", encoding="utf-8", errors="ignore") as fh:
+    with p.open("r", encoding="utf-8", errors="ignore") as fh:
         iterator = fh
 
-        if show_progress:
-            iterator = tqdm(fh, total=total, desc="Parsing METAR Data", unit="line")
+        # if show_progress:
+        #     iterator = tqdm(fh, total=total, desc="Parsing METAR Data", unit="line")
 
         for line in iterator:
             s = line.strip()
